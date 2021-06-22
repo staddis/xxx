@@ -94,7 +94,7 @@ const BASE_URL = 'https://wq.jd.com/cubeactive/steprewardv3'
     cookie = cookiesArr[i];
     $.canOpenGrade = true;
     $.UserName = decodeURIComponent(cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1])
-    const grades = [1, 2, 3, 4, 5, 6, 7];
+    const grades = [1, 2, 3, 4, 5, 6];
     for (let grade of grades) {
       if (!$.canOpenGrade) break;
       if (!$.packetIdArr[i]) continue;
@@ -184,7 +184,7 @@ function enrollFriend(strPin) {
       try {
         if (err) {
           console.log(`\n${$.name}:  API查询请求失败 ‼️‼️`)
-          $.log(JSON.stringify(err));
+          $.logErr(err);
         } else {
           // console.log('助力结果', data)
           data = JSON.parse(data)
