@@ -38,7 +38,7 @@ let tokenArr = []; // 用户 token 数组
 let currentToken = {}; // 当前用户 token
 let shareCode = ''; // 内置助力码
 let jxncShareCodeArr = []; // 用户 助力码 数组
-let currentShareCode = []; // 当前用户 要助力的助力码
+let currentShareCode = [{"smp":"a82f311b5fdabaf325c26294240980e0","active":"jdnc_1_2yuanhuangguog210422_2","joinnum":1}@{"smp":"36687e5710a6230ac871e3f171ba5cfc","active":"jdnc_1_4yuantaimang210422_2","joinnum":1}@{"smp":"77503f176ff4e27195c850e6eba2528c","active":"jdnc_1_2yuanhuangguog210422_2","joinnum":1}@{"smp":"3daf3331215a0098e13f2b6efb85fc8b","active":"jdnc_1_4yuantaimang210422_2","joinnum":1}@{"smp":"4ae9747a43f2acba58a74c7f6620ef6e","active":"jdnc_1_3yuanganju210601_2","joinnum":1}]; // 当前用户 要助力的助力码
 const openUrl = `openjd://virtual?params=${encodeURIComponent('{ "category": "jump", "des": "m", "url": "https://wqsh.jd.com/sns/201912/12/jxnc/detail.html?ptag=7155.9.32&smp=b47f4790d7b2a024e75279f55f6249b9&active=jdnc_1_chelizi1205_2"}',)}`; // 打开京喜农场
 let subTitle = '', message = '', option = {'open-url': openUrl}; // 消息副标题，消息正文，消息扩展参数
 const JXNC_API_HOST = 'https://wq.jd.com/';
@@ -187,7 +187,7 @@ function requireConfig() {
 
     try {
       let options = {
-        "url": `https://cdn.jsdelivr.net/gh/gitupdate/updateTeam@master/shareCodes/jxnc.txt`,
+        "url": `https://cdn.jsdelivr.net/gh/zhaozhanzhan/jsdelivrCDN@main/shareCodes/jxnc.txt`,
         "headers": {
           "Accept": "application/json,text/plain, */*",
           "Content-Type": "application/x-www-form-urlencoded",

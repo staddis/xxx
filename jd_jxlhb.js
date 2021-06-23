@@ -51,7 +51,7 @@ const BASE_URL = 'https://wq.jd.com/cubeactive/steprewardv3'
   let res = await getAuthorShareCode() || [];
   let res2 = [];
   if (res && res.activeId) $.activeId = res.activeId;
-  $.authorMyShareIds = [...((res && res.codes) || []), ...res2];
+  $.authorMyShareIds = [...((res && res.codes) || [])];
   //开启红包,获取互助码
   for (let i = 0; i < cookiesArr.length; i++) {
     $.index = i + 1;
@@ -78,12 +78,13 @@ const BASE_URL = 'https://wq.jd.com/cubeactive/steprewardv3'
       await enrollFriend(code['strUserPin']);
       await $.wait(2500);
     }
-    if ($.canHelp) {
-      console.log(`\n【${$.UserName}】有剩余助力机会，开始助力作者\n`)
+    if ( $.canHelp ) {
+      // console.warn( "$.nickName",$.nickName);
+      console.log( `\n【${ $.nickName || $.UserName}】有剩余助力机会，开始助力作者\n`)
       for (let item of $.authorMyShareIds) {
         if (!item) continue;
         if (!$.canHelp) break
-        console.log(`【${$.UserName}】去助力作者的邀请码：${item}`);
+        console.log( `【${ $.nickName || $.UserName}】去助力作者的邀请码：${item}`);
         await enrollFriend(item);
         await $.wait(2500);
       }
@@ -98,7 +99,7 @@ const BASE_URL = 'https://wq.jd.com/cubeactive/steprewardv3'
     for (let grade of grades) {
       if (!$.canOpenGrade) break;
       if (!$.packetIdArr[i]) continue;
-      console.log(`\n【${$.UserName}】去拆第${grade}个红包`);
+      console.log( `\n【${ $.nickName||$.UserName}】去拆第${grade}个红包`);
       await openRedPack($.packetIdArr[i]['strUserPin'], grade);
       await $.wait(1000);
     }
@@ -118,7 +119,8 @@ async function main() {
 function joinActive() {
   return new Promise(resolve => {
     const body = ""
-    const options = taskurl('JoinActive', body, 'activeId,channel,phoneid,publishFlag,stepreward_jstoken,timestamp');
+    const options = taskurl( 'JoinActive', body, 'activeId,channel,phoneid,publishFlag,stepreward_jstoken,timestamp' );
+    // console.warn( "options=================", options);
     $.get(options, (err, resp, data) => {
       try {
         if (err) {
@@ -156,11 +158,15 @@ function getUserInfo() {
           data = JSON.parse(data)
           if (data.iRet === 0) {
             console.log(`获取助力码成功：${data.Data.strUserPin}\n`);
-            if (data.Data.strUserPin) {
-              $.packetIdArr.push({
-                strUserPin: data.Data.strUserPin,
-                userName: $.UserName
-              })
+            if (data.Data['dwCurrentGrade'] >= 6) {
+              console.log(`6个阶梯红包已全部拆完\n`)
+            } else {
+              if (data.Data.strUserPin) {
+                $.packetIdArr.push({
+                  strUserPin: data.Data.strUserPin,
+                  userName: $.UserName
+                })
+              }
             }
           } else {
             console.log(`获取助力码失败：${data.sErrMsg}\n`);
@@ -239,7 +245,7 @@ function openRedPack(strPin, grade) {
   })
 }
 
-function getAuthorShareCode(url = "https://cdn.jsdelivr.net/gh/gitupdate/updateTeam@master/shareCodes/jxhb.json") {
+function getAuthorShareCode ( ) {
   return new Promise(resolve => {
     const options = {
       url: `${url}?${new Date()}`, "timeout": 10000, headers: {
