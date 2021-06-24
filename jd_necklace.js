@@ -23,7 +23,7 @@ let allMessage = ``;
 const notify = $.isNode() ? require('./sendNotify') : '';
 //Node.js用户请在jdCookie.js处填写京东ck;
 let tmpck = $.isNode() ? require('./jdCookie.js') : '';
-tmpck.reverse();
+tmpck.push(tmpck[0]);
 const jdCookieNode=tmpck;
 const openUrl = `openjd://virtual?params=%7B%20%22category%22:%20%22jump%22,%20%22des%22:%20%22m%22,%20%22url%22:%20%22https://h5.m.jd.com/babelDiy/Zeus/41Lkp7DumXYCFmPYtU3LTcnTTXTX/index.html%22%20%7D`
 let message = '';
