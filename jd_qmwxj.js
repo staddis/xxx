@@ -5,7 +5,7 @@ export shareCode="1316A6C92EE496E3BB6C5CFB2AE6F58F"
 [task_local]
 0 10 * * *
 */
-
+export shareCode="1316A6C92EE496E3BB6C5CFB2AE6F58F"
 const $ = new Env('柠檬全民挖现金');
 const notify = $.isNode() ? require('./sendNotify') : '';
 //Node.js用户请在jdCookie.js处填写京东ck;

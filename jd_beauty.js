@@ -12,13 +12,13 @@ const notify = $.isNode() ? require('./sendNotify') : '';
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 const WebSocket = require('ws');
 //const WebSocket = $.isNode() ? require('websocket').w3cwebsocket: SockJS;
-let jdNotify = true;//是否关闭通知，false打开通知推送，true关闭通知推送
+let jdNotify = false;//是否关闭通知，false打开通知推送，true关闭通知推送
 const randomCount = $.isNode() ? 20 : 5;
 $.accountCheck = true;
 $.init = false;
 // const bean = 1; //兑换多少豆，默认是500
 //IOS等用户直接用NobyDa的jd cookie
-let cookiesArr = [], cookie = '', message, helpInfo, ADD_CART = false;
+let cookiesArr = [], cookie = '', message, helpInfo, ADD_CART = true;
 
 if ($.isNode()) {
   Object.keys(jdCookieNode).forEach((item) => {
