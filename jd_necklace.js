@@ -190,8 +190,8 @@ async function getBody($ = {}) {
 
 if ($.isNode()) {
   Object.keys(jdCookieNode).forEach((item) => {
+	cookiesArr.push(jdCookieNode[0])  
     cookiesArr.push(jdCookieNode[item])
-	cookiesArr.unshift(jdCookieNode[0])
   })
   if (process.env.JD_DEBUG && process.env.JD_DEBUG === 'false') console.log = () => {};
 } else {
