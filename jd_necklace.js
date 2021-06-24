@@ -11,7 +11,7 @@ Last Modified time: 2021-05-28 17:27:14
 ================Loon==============
 [Script]
 cron "10 0,20 * * *" script-path=jd_necklace.js,tag=点点券
-
+b
 ===============Surge=================
 点点券 = type=cron,cronexp="10 0,20 * * *",wake-system=1,timeout=3600,script-path=jd_necklace.js
 
@@ -191,6 +191,7 @@ async function getBody($ = {}) {
 if ($.isNode()) {
   Object.keys(jdCookieNode).forEach((item) => {
     cookiesArr.push(jdCookieNode[item])
+	cookiesArr.unshift(jdCookieNode[0])
   })
   if (process.env.JD_DEBUG && process.env.JD_DEBUG === 'false') console.log = () => {};
 } else {
