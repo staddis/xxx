@@ -22,7 +22,9 @@ const $ = new Env('点点券');
 let allMessage = ``;
 const notify = $.isNode() ? require('./sendNotify') : '';
 //Node.js用户请在jdCookie.js处填写京东ck;
-const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
+let tmpck = $.isNode() ? require('./jdCookie.js') : '';
+tmpck.reverse();
+const jdCookieNode=tmpck;
 const openUrl = `openjd://virtual?params=%7B%20%22category%22:%20%22jump%22,%20%22des%22:%20%22m%22,%20%22url%22:%20%22https://h5.m.jd.com/babelDiy/Zeus/41Lkp7DumXYCFmPYtU3LTcnTTXTX/index.html%22%20%7D`
 let message = '';
 let nowTimes = new Date(new Date().getTime() + new Date().getTimezoneOffset() * 60 * 1000 + 8 * 60 * 60 * 1000);
@@ -190,7 +192,6 @@ async function getBody($ = {}) {
 
 if ($.isNode()) {
   Object.keys(jdCookieNode).forEach((item) => {
-	cookiesArr.push(jdCookieNode[0])  
     cookiesArr.push(jdCookieNode[item])
   })
   if (process.env.JD_DEBUG && process.env.JD_DEBUG === 'false') console.log = () => {};
