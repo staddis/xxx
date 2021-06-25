@@ -1,11 +1,11 @@
 /*
 入口 京东 我的 全民挖现金
 运行一次查看邀请码 变量你的邀请码 
-export shareCode="1316A6C92EE496E3BB6C5CFB2AE6F58F"
+export shareCode="FCD4A7E5CB4AF69377D77E9B4553CF6CAD1DAAB9A3E3F6CBAFDE81EEB7393333"
 [task_local]
 0 10 * * *
 */
-export shareCode="1316A6C92EE496E3BB6C5CFB2AE6F58F"
+
 const $ = new Env('柠檬全民挖现金');
 const notify = $.isNode() ? require('./sendNotify') : '';
 //Node.js用户请在jdCookie.js处填写京东ck;

@@ -8,8 +8,7 @@ export inviter="" ##邀请码
 #柠檬省钱大赢家
  0,2 0 * * * http://nm66.top/jd_sqdyj.js, tag=柠檬省钱大赢家, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
 */
-export redEnvelopeId="9b6ce9617e984cf786a48b0fb8afb6a180891624464007969" ##本期活动ID
-export inviter="vQBOOC3xSA9by9T9zyTpVg" ##邀请码
+
 
 const $ = new Env('柠檬省钱大赢家');
 const notify = $.isNode() ? require('./sendNotify') : '';
@@ -18,8 +17,8 @@ const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 
 //IOS等用户直接用NobyDa的jd cookie
 let cookiesArr = [], cookie = '', message;
-let redEnvelopeId = '9b6ce9617e984cf786a48b0fb8afb6a180891624464007969';
-let inviter = 'vQBOOC3xSA9by9T9zyTpVg';
+let redEnvelopeId = '';
+let inviter = '';
 
 if (process.env.redEnvelopeId) {
   redEnvelopeId = process.env.redEnvelopeId;
