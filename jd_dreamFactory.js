@@ -14,7 +14,7 @@
 
 ================Loon==============
 [Script]
-cron "10 3-23 * * *" script-path=jd_dreamFactory.js,tag=京喜工厂
+cron "10 * * * *" script-path=jd_dreamFactory.js,tag=京喜工厂
 
 ===============Surge=================
 京喜工厂 = type=cron,cronexp="10 * * * *",wake-system=1,timeout=3600,script-path=jd_dreamFactory.js
@@ -38,7 +38,7 @@ const helpAu = false; //帮作者助力 免费拿活动
 const notify = $.isNode() ? require('./sendNotify') : '';
 let jdNotify = false;//是否关闭通知，false打开通知推送，true关闭通知推送
 const randomCount = $.isNode() ? 20 : 5;
-let tuanActiveId = `bozIUUFcANuUdWpw3QdvPw==`, hasSend = false;
+let tuanActiveId = ``, hasSend = false;
 const jxOpenUrl = `openjd://virtual?params=%7B%20%22category%22:%20%22jump%22,%20%22des%22:%20%22m%22,%20%22url%22:%20%22https://wqsd.jd.com/pingou/dream_factory/index.html%22%20%7D`;
 let cookiesArr = [], cookie = '', message = '', allMessage = '';
 const inviteCodes = [
@@ -48,7 +48,7 @@ const inviteCodes = [
 //   '-OvElMzqeyeGBWazWYjI1Q==',
 //   'GFwo6PntxDHH95ZRzZ5uAg=='
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
-$.tuanIds = [fDG2FKL9Z5SW7kre5evcsQ==];
+$.tuanIds = [];
 $.appId = 10001;
 if ($.isNode()) {
   Object.keys(jdCookieNode).forEach((item) => {
@@ -594,7 +594,7 @@ function userInfo() {
                 }
                 console.log(`当前电力：${data.user.electric}`)
                 console.log(`当前等级：${data.user.currentLevel}`)
-                console.log(`\n【京东账号${$.index}（${$.UserName}）的${$.name}好友互助码】${data.user.encryptPin}`);
+                console.log( `\n【京东账号${ $.index }（${ $.nickName||$.UserName}）的${$.name}好友互助码】${data.user.encryptPin}`);
                 console.log(`已投入电力：${production.investedElectric}`);
                 console.log(`所需电力：${production.needElectric}`);
                 console.log(`生产进度：${((production.investedElectric / production.needElectric) * 100).toFixed(2)}%`);
@@ -979,7 +979,7 @@ async function joinLeaderTuan() {
     for (let tuanId of $.authorTuanIds) {
       if (!tuanId) continue
       if (!$.canHelp) break;
-      console.log(`\n账号${$.UserName} 参加作者的团 【${tuanId}】`);
+      console.log(`\n账号${$.nickName||$.UserName} 参加作者的团 【${tuanId}】`);
       await JoinTuan(tuanId);
       await $.wait(1000);
     }
@@ -1337,8 +1337,8 @@ function shareCodesFormat() {
       $.newShareCodes = $.shareCodesArr[$.index - 1].split('@');
     } else {
       console.log(`由于您第${$.index}个京东账号未提供shareCode,将采纳本脚本自带的助力码\n`)
-      const tempIndex = $.index > inviteCodes.length ? (inviteCodes.length - 1) : ($.index - 1);
-      $.newShareCodes = inviteCodes[tempIndex].split('@');
+      const tempIndex = $.index > inviteCodes.length ? ( inviteCodes.length - 1 ) : ( $.index - 1 );
+      $.newShareCodes = inviteCodes[ tempIndex ] ? inviteCodes[tempIndex].split('@'): [];
     }
     const readShareCodeRes = await readShareCode();
     if (readShareCodeRes && readShareCodeRes.code === 200) {
@@ -1390,50 +1390,94 @@ function requireConfig() {
     resolve()
   })
 }
-function TotalBean() {
-  return new Promise(async resolve => {
+function TotalBean () {
+  return new Promise( async resolve => {
     const options = {
-      "url": `https://wq.jd.com/user/info/QueryJDUserInfo?sceneval=2`,
-      "headers": {
-        "Accept": "application/json,text/plain, */*",
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Accept-Encoding": "gzip, deflate, br",
+      url: "https://me-api.jd.com/user_new/info/GetJDUserInfoUnion",
+      headers: {
+        Host: "me-api.jd.com",
+        Accept: "*/*",
+        Connection: "keep-alive",
+        Cookie: cookie,
+        "User-Agent": $.isNode() ? ( process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : ( require( './USER_AGENTS' ).USER_AGENT ) ) : ( $.getdata( 'JDUA' ) ? $.getdata( 'JDUA' ) : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1" ),
         "Accept-Language": "zh-cn",
-        "Connection": "keep-alive",
-        "Cookie": cookie,
-        "Referer": "https://wqs.jd.com/my/jingdou/my.shtml?sceneval=2",
-        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1"
+        "Referer": "https://home.m.jd.com/myJd/newhome.action?sceneval=2&ufc=&",
+        "Accept-Encoding": "gzip, deflate, br"
       }
     }
-    $.post(options, (err, resp, data) => {
+    $.get( options, ( err, resp, data ) => {
       try {
-        if (err) {
-          console.log(`${JSON.stringify(err)}`)
-          console.log(`${$.name} API请求失败，请检查网路重试`)
+        if ( err ) {
+          $.logErr( err )
         } else {
-          if (data) {
-            data = JSON.parse(data);
-            if (data['retcode'] === 13) {
+          if ( data ) {
+            data = JSON.parse( data );
+            if ( data[ 'retcode' ] === "1001" ) {
               $.isLogin = false; //cookie过期
-              return
+              return;
             }
-            if (data['retcode'] === 0) {
-              $.nickName = (data['base'] && data['base'].nickname) || $.UserName;
-            } else {
-              $.nickName = $.UserName
+            if ( data[ 'retcode' ] === "0" && data.data && data.data.hasOwnProperty( "userInfo" ) ) {
+              $.nickName = data.data.userInfo.baseInfo.nickname;
+            }
+            if ( data[ 'retcode' ] === '0' && data.data && data.data[ 'assetInfo' ] ) {
+              $.beanCount = data.data && data.data[ 'assetInfo' ][ 'beanNum' ];
             }
           } else {
-            console.log(`京东服务器返回空数据`)
+            $.log( '京东服务器返回空数据' );
           }
         }
-      } catch (e) {
-        $.logErr(e, resp)
+      } catch ( e ) {
+        $.logErr( e )
       } finally {
         resolve();
       }
-    })
-  })
+    } )
+  } )
 }
+// function TotalBean() {
+//   return new Promise(async resolve => {
+//     const options = {
+//       "url": `https://wq.jd.com/user/info/QueryJDUserInfo?sceneval=2`,
+//       "headers": {
+//         "Accept": "application/json,text/plain, */*",
+//         "Content-Type": "application/x-www-form-urlencoded",
+//         "Accept-Encoding": "gzip, deflate, br",
+//         "Accept-Language": "zh-cn",
+//         "Connection": "keep-alive",
+//         "Cookie": cookie,
+//         "Referer": "https://wqs.jd.com/my/jingdou/my.shtml?sceneval=2",
+//         "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1"
+//       }
+//     }
+//     $.post(options, (err, resp, data) => {
+//       try {
+//         if (err) {
+//           console.log(`${JSON.stringify(err)}`)
+//           console.log(`${$.name} API请求失败，请检查网路重试`)
+//         } else {
+//           if (data) {
+//             data = JSON.parse(data);
+//             if (data['retcode'] === 13) {
+//               $.isLogin = false; //cookie过期
+//               return
+//             }
+//             if (data['retcode'] === 0) {
+//               $.nickName = (data['base'] && data['base'].nickname) || $.UserName;
+//             } else {
+//               $.nickName = $.UserName
+//             }
+//           } else {
+//             console.log(`京东服务器返回空数据`)
+//           }
+//         }
+//       } catch (e) {
+//         $.logErr(e, resp)
+//       } finally {
+//         resolve();
+//       }
+//     })
+//   })
+// }
 function safeGet(data) {
   try {
     if (typeof JSON.parse(data) == "object") {

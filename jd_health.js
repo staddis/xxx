@@ -8,17 +8,17 @@ author: 疯疯
 ===================quantumultx================
 [task_local]
 #东东健康社区
-13 1,6,22 * * * jd_health.js, tag=东东健康社区, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
+13 1,6,22 * * * https://gitee.com/lxk0301/jd_scripts/raw/master/jd_health.js, tag=东东健康社区, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
 
 =====================Loon================
 [Script]
-cron "13 1,6,22 * * *" script-path=jd_health.js, tag=东东健康社区
+cron "13 1,6,22 * * *" script-path=https://gitee.com/lxk0301/jd_scripts/raw/master/jd_health.js, tag=东东健康社区
 
 ====================Surge================
-东东健康社区 = type=cron,cronexp="13 1,6,22 * * *",wake-system=1,timeout=3600,script-path=jd_health.js
+东东健康社区 = type=cron,cronexp="13 1,6,22 * * *",wake-system=1,timeout=3600,script-path=https://gitee.com/lxk0301/jd_scripts/raw/master/jd_health.js
 
 ============小火箭=========
-东东健康社区 = type=cron,script-path=jd_health.js, cronexpr="13 1,6,22 * * *", timeout=3600, enable=true
+东东健康社区 = type=cron,script-path=https://gitee.com/lxk0301/jd_scripts/raw/master/jd_health.js, cronexpr="13 1,6,22 * * *", timeout=3600, enable=true
  */
 const $ = new Env("东东健康社区");
 const jdCookieNode = $.isNode() ? require("./jdCookie.js") : "";
@@ -63,7 +63,8 @@ const JD_API_HOST = "https://api.m.jd.com/client.action";
       );
       $.index = i + 1;
       message = "";
-      console.log(`\n******开始【京东账号${$.index}】${$.UserName}*********\n`);
+      await TotalBean();
+      console.log( `\n******开始【京东账号${ $.index }】${ $.nickName || $.UserName}*********\n`);
       await shareCodesFormat()
       await main()
       await showMsg()
@@ -111,7 +112,50 @@ async function helpFriends() {
     await $.wait(1000)
   }
 }
-
+function TotalBean () {
+  return new Promise( async resolve => {
+    const options = {
+      url: "https://me-api.jd.com/user_new/info/GetJDUserInfoUnion",
+      headers: {
+        Host: "me-api.jd.com",
+        Accept: "*/*",
+        Connection: "keep-alive",
+        Cookie: cookie,
+        "User-Agent": $.isNode() ? ( process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : ( require( './USER_AGENTS' ).USER_AGENT ) ) : ( $.getdata( 'JDUA' ) ? $.getdata( 'JDUA' ) : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1" ),
+        "Accept-Language": "zh-cn",
+        "Referer": "https://home.m.jd.com/myJd/newhome.action?sceneval=2&ufc=&",
+        "Accept-Encoding": "gzip, deflate, br"
+      }
+    }
+    $.get( options, ( err, resp, data ) => {
+      try {
+        if ( err ) {
+          $.logErr( err )
+        } else {
+          if ( data ) {
+            data = JSON.parse( data );
+            if ( data[ 'retcode' ] === "1001" ) {
+              $.isLogin = false; //cookie过期
+              return;
+            }
+            if ( data[ 'retcode' ] === "0" && data.data && data.data.hasOwnProperty( "userInfo" ) ) {
+              $.nickName = data.data.userInfo.baseInfo.nickname;
+            }
+            if ( data[ 'retcode' ] === '0' && data.data && data.data[ 'assetInfo' ] ) {
+              $.beanCount = data.data && data.data[ 'assetInfo' ][ 'beanNum' ];
+            }
+          } else {
+            $.log( '京东服务器返回空数据' );
+          }
+        }
+      } catch ( e ) {
+        $.logErr( e )
+      } finally {
+        resolve();
+      }
+    } )
+  } )
+}
 function showMsg() {
   return new Promise(async resolve => {
     message += `本次获得${$.earn}健康值，累计${$.score}健康值\n`
