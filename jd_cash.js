@@ -28,7 +28,12 @@ let jdNotify = true;//是否关闭通知，false打开通知推送，true关闭�
 //IOS等用户直接用NobyDa的jd cookie
 let cookiesArr = [], cookie = '', message;
 let helpAuthor = true;
-const randomCount = $.isNode() ? 20 : 5;
+const randomCount = $.isNode() ? 0 : 5;
+let cash_exchange = false;//是否消耗2元红包兑换200京豆，默认否
+const inviteCodes = [
+  `eU9YL5XqGLxSmRSAkwxR'
+]
+let myInviteCode;
 
 if ($.isNode()) {
   Object.keys(jdCookieNode).forEach((item) => {
@@ -45,34 +50,13 @@ let allMessage = '';
     $.msg($.name, '【提示】请先获取京东账号一cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/bean/signIndex.action', {"open-url": "https://bean.m.jd.com/bean/signIndex.action"});
     return;
   }
-  //await requireConfig()
-  // for ( let i = 0; i < cookiesArr.length; i++ ) {
-  //   if ( cookiesArr[ i ] ) {
-      
-  //   } else {
-  //     if ( !$.isLogin ) {
-  //       $.msg( $.name, `【提示】cookie已失效`, `京东账号${ $.index } ${ $.nickName || $.UserName }\n请重新登录获取\nhttps://bean.m.jd.com/bean/signIndex.action`, { "open-url": "https://bean.m.jd.com/bean/signIndex.action" } );
-
-  //       if ( $.isNode() ) {
-  //         await notify.sendNotify( `${ $.name }cookie已失效 - ${ $.UserName }`, `京东账号${ $.index } ${ $.UserName }\n请重新登录获取cookie` );
-  //       }
-  //       continue
-  //     }
-  //   }
-  // }
-  // console.log( `您提供了${ newShareCodes.length }个账号的${ $.name }助力码\n` );
-  for ( let i = 0; i < cookiesArr.length; i++ ){
-    if ( cookiesArr[ i ] ) {
-      cookie = cookiesArr[ i ];
-      $.UserName = decodeURIComponent( cookie.match( /pt_pin=([^; ]+)(?=;?)/ ) && cookie.match( /pt_pin=([^; ]+)(?=;?)/ )[ 1 ] )
-      await TotalBean();
-      await getCookieInviteCode( $.nickName || $.UserName, cookie );
-    }
-  }
-  for ( let i = 0; i < cookiesArr.length; i++ ) {
-    if ( cookiesArr[ i ] ) {
-      cookie = cookiesArr[ i ];
-      $.UserName = decodeURIComponent( cookie.match( /pt_pin=([^; ]+)(?=;?)/ ) && cookie.match( /pt_pin=([^; ]+)(?=;?)/ )[ 1 ] )
+  await requireConfig()
+  // await getAuthorShareCode();//网址失效，注释
+  await getAuthorShareCode2();
+  for (let i = 0; i < cookiesArr.length; i++) {
+    if (cookiesArr[i]) {
+      cookie = cookiesArr[i];
+      $.UserName = decodeURIComponent(cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1])
       $.index = i + 1;
       $.isLogin = true;
       $.nickName = '';
