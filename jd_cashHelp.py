@@ -1,22 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*
 '''
-项目名称: JD-Script / jd_qjd
+项目名称: JD-Script / jd_cash
 Author: Curtin
-功能：全民抢京豆（7.2-7.15）：https://h5.m.jd.com/rn/3MQXMdRUTeat9xqBSZDSCCAE9Eqz/index.html?has_native=0
-    满160豆需要20人助力，每个用户目前只能助力2次不同的用户。
-Date: 2021/7/3 上午10:02
+功能：签到领现金-助力, 仅助力拿cash
+Date: 2021/7/4 上午09:35
 TG交流 https://t.me/topstyle996
 TG频道 https://t.me/TopStyle2021
-update: 2021.7.6 00:34
-* 修复了助力活动不存在、增加了随机UA（如果未定义ua则启用随机UA）
-* 新增推送
-* 修复0点不能开团
+update 2021.7.4 18:26
 '''
 
 #ck 优先读取【JDCookies.txt】 文件内的ck  再到 ENV的 变量 JD_COOKIE='ck1&ck2' 最后才到脚本内 cookies=ck
 cookies = ''
-qjd_zlzh = ['Your JD_User', '买买买']
+# 设置被助力的账号可填用户名 或 pin的值不要;
+cash_zlzh = ['Your JD_User', '买买买']
 
 # Env环境设置 通知服务
 # export BARK=''                   # bark服务,苹果商店自行搜索;
@@ -36,19 +33,19 @@ qjd_zlzh = ['Your JD_User', '买买买']
 #####
 
 # 建议调整一下的参数
-# UA 可自定义你的，注意格式: jdapp;iPhone;10.0.4;13.1.1;93b4243eeb1af72d142991d85cba75c66873dca5;network/wifi;ADID/8679C062-A41A-4A25-88F1-50A7A3EEF34A;model/iPhone13,1;addressid/3723896896;appBuild/167707;jdSupportDarkMode/0
+# UA 可自定义你的，注意格式: 【 jdapp;iPhone;10.0.4;14.2;9fb54498b32e17dfc5717744b5eaecda8366223c;network/wifi;ADID/2CF597D0-10D8-4DF8-C5A2-61FD79AC8035;model/iPhone11,1;addressid/7785283669;appBuild/167707;jdSupportDarkMode/0;Mozilla/5.0 (iPhone; CPU iPhone OS 14_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/null;supportJDSHWK/1 】
 UserAgent = ''
 # 限制速度 （秒）
 sleepNum = 0.1
 
 import os, re, sys
-import random, string
+import random
 try:
     import requests
 except Exception as e:
     print(e, "\n缺少requests 模块，请执行命令安装：python3 -m pip install requests")
     exit(3)
-from urllib.parse import unquote
+from urllib.parse import unquote, quote
 import json
 import time
 requests.packages.urllib3.disable_warnings()
@@ -56,50 +53,8 @@ requests.packages.urllib3.disable_warnings()
 pwd = os.path.dirname(os.path.abspath(__file__)) + os.sep
 t = time.time()
 aNum = 0
-beanCount = 0
-userCount = {}
-
-######## 获取通知模块
-message_info = ''''''
-def message(str_msg):
-    global message_info
-    print(str_msg)
-    message_info = "{}\n{}".format(message_info, str_msg)
-    sys.stdout.flush()
-def getsendNotify(a=0):
-    if a == 0:
-        a += 1
-    try:
-        url = 'https://gitee.com/curtinlv/Public/raw/master/sendNotify.py'
-        response = requests.get(url)
-        if 'main' in response.text:
-            with open('sendNotify.py', "w+", encoding="utf-8") as f:
-                f.write(response.text)
-        else:
-            if a < 5:
-                a += 1
-                return getsendNotify(a)
-            else:
-                pass
-    except:
-        if a < 5:
-            a += 1
-            return getsendNotify(a)
-        else:
-            pass
-cur_path = os.path.abspath(os.path.dirname(__file__))
-sys.path.append(cur_path)
-if os.path.exists(cur_path + "/sendNotify.py"):
-    from sendNotify import send
-else:
-    getsendNotify()
-    try:
-        from sendNotify import send
-    except:
-        print("加载通知服务失败~")
-###################
-
-###### 获取cookie
+cashCount = 0
+cashCountdict = {}
 class getJDCookie(object):
     # 适配各种平台环境ck
     def getckfile(self):
@@ -215,109 +170,145 @@ class getJDCookie(object):
 getCk = getJDCookie()
 getCk.getCookie()
 
-if "qjd_zlzh" in os.environ:
-    if len(os.environ["qjd_zlzh"]) > 1:
-        qjd_zlzh = os.environ["qjd_zlzh"]
-        qjd_zlzh = qjd_zlzh.replace('[', '').replace(']', '').replace('\'', '').replace(' ', '').split(',')
-        print("已获取并使用Env环境 qjd_zlzh:", qjd_zlzh)
+if "cash_zlzh" in os.environ:
+    if len(os.environ["cash_zlzh"]) > 1:
+        cash_zlzh = os.environ["cash_zlzh"]
+        cash_zlzh = cash_zlzh.replace('[', '').replace(']', '').replace('\'', '').replace(' ', '').split(',')
+        print("已获取并使用Env环境 cash_zlzh:", cash_zlzh)
+
+######## 获取通知模块
+message_info = ''''''
+def message(str_msg):
+    global message_info
+    print(str_msg)
+    message_info = "{}\n{}".format(message_info, str_msg)
+    sys.stdout.flush()
+def getsendNotify(a=0):
+    if a == 0:
+        a += 1
+    try:
+        url = 'https://gitee.com/curtinlv/Public/raw/master/sendNotify.py'
+        response = requests.get(url)
+        if 'main' in response.text:
+            with open('sendNotify.py', "w+", encoding="utf-8") as f:
+                f.write(response.text)
+        else:
+            if a < 5:
+                a += 1
+                return getsendNotify(a)
+            else:
+                pass
+    except:
+        if a < 5:
+            a += 1
+            return getsendNotify(a)
+        else:
+            pass
+cur_path = os.path.abspath(os.path.dirname(__file__))
+sys.path.append(cur_path)
+if os.path.exists(cur_path + "/sendNotify.py"):
+    from sendNotify import send
+else:
+    getsendNotify()
+    try:
+        from sendNotify import send
+    except:
+        print("加载通知服务失败~")
+###################
 
 def userAgent():
     """
     随机生成一个UA
-    :return:
+    jdapp;iPhone;10.0.4;14.2;9fb54498b32e17dfc5717744b5eaecda8366223c;network/wifi;ADID/2CF597D0-10D8-4DF8-C5A2-61FD79AC8035;model/iPhone11,1;addressid/7785283669;appBuild/167707;jdSupportDarkMode/0;Mozilla/5.0 (iPhone; CPU iPhone OS 14_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/null;supportJDSHWK/1
+    :return: ua
     """
     if not UserAgent:
         uuid = ''.join(random.sample('123456789abcdef123456789abcdef123456789abcdef123456789abcdef', 40))
+        addressid = ''.join(random.sample('1234567898647', 10))
         iosVer = ''.join(random.sample(["14.5.1", "14.4", "14.3", "14.2", "14.1", "14.0.1", "13.7", "13.1.2", "13.1.1"], 1))
+        iosV = iosVer.replace('.', '_')
         iPhone = ''.join(random.sample(["8", "9", "10", "11", "12", "13"], 1))
-        return f'jdapp;iPhone;10.0.4;{iosVer};{uuid};network/wifi;ADID/8679C062-A41A-4A25-88F1-50A7A3EEF34A;model/iPhone{iPhone},1;addressid/3723896896;appBuild/167707;jdSupportDarkMode/0'
+        ADID = ''.join(random.sample('0987654321ABCDEF', 8)) + '-' + ''.join(random.sample('0987654321ABCDEF', 4)) + '-' + ''.join(random.sample('0987654321ABCDEF', 4)) + '-' + ''.join(random.sample('0987654321ABCDEF', 4)) + '-' + ''.join(random.sample('0987654321ABCDEF', 12))
+        return f'jdapp;iPhone;10.0.4;{iosVer};{uuid};network/wifi;ADID/{ADID};model/iPhone{iPhone},1;addressid/{addressid};appBuild/167707;jdSupportDarkMode/0;Mozilla/5.0 (iPhone; CPU iPhone OS {iosV} like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/null;supportJDSHWK/1'
     else:
         return UserAgent
 
-def getShareCode(ck):
+def buildHeader(ck):
+    headers = {
+        'Origin': 'https://h5.m.jd.com',
+        'Cookie': ck,
+        'Connection': 'keep-alive',
+        'Accept': 'application/json, text/plain, */*',
+        'Referer': f'https://h5.m.jd.com/babelDiy/Zeus/GzY6gTjVg1zqnQRnmWfMKC4PsT1/index.html?lng=&lat=&sid=&un_area=',
+        'Host': 'api.m.jd.com',
+        'User-Agent': userAgent(),
+        'Accept-Language': 'zh-cn',
+        'Accept-Encoding': 'gzip, deflate, br'
+    }
+    return headers
+
+def getShareCode(header):
     global aNum
     try:
-        # uuid = ''.join(random.sample('123456789abcdef123456789abcdef123456789abcdef123456789abcdef', 40))
-        v_num1 = ''.join(random.sample(["1", "2", "3", "4", "5", "6", "7", "8", "9"], 1)) + ''.join(random.sample(string.digits, 4))
-        url1 = f'https://api.m.jd.com/client.action?functionId=signGroupHit&body=%7B%22activeType%22%3A2%7D&appid=ld&client=apple&clientVersion=10.0.6&networkType=wifi&osVersion=14.3&uuid=&jsonp=jsonp_' + str(int(round(t * 1000))) + '_' + v_num1
-        url = 'https://api.m.jd.com/client.action?functionId=signBeanGroupStageIndex&body=%7B%22monitor_refer%22%3A%22%22%2C%22rnVersion%22%3A%223.9%22%2C%22fp%22%3A%22-1%22%2C%22shshshfp%22%3A%22-1%22%2C%22shshshfpa%22%3A%22-1%22%2C%22referUrl%22%3A%22-1%22%2C%22userAgent%22%3A%22-1%22%2C%22jda%22%3A%22-1%22%2C%22monitor_source%22%3A%22bean_m_bean_index%22%7D&appid=ld&client=apple&clientVersion=&networkType=&osVersion=&uuid=&jsonp=jsonp_' + str(int(round(t * 1000))) + '_' + v_num1
-        head = {
-            'Cookie': ck,
-            'Accept': '*/*',
-            'Connection': 'keep-alive',
-            'Referer': 'https://h5.m.jd.com/rn/3MQXMdRUTeat9xqBSZDSCCAE9Eqz/index.html?has_native=0',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Host': 'api.m.jd.com',
-            # 'User-Agent': 'Mozilla/5.0 (iPhone CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.2 Mobile/15E148 Safari/604.1',
-            'User-Agent': userAgent(),
-            'Accept-Language': 'zh-cn'
-        }
-        requests.get(url1,  headers=head, verify=False, timeout=30)
-        resp = requests.get(url=url, headers=head, verify=False, timeout=30).text
-        r = re.compile(r'jsonp_.*?\((.*?)\)\;', re.M | re.S | re.I)
-        result = r.findall(resp)
-        jsonp = json.loads(result[0])
-        try:
-            groupCode = jsonp['data']['groupCode']
-            shareCode = jsonp['data']['shareCode']
-            activityId = jsonp['data']['activityMsg']['activityId']
-            sumBeanNumStr = int(jsonp['data']['sumBeanNumStr'])
-        except:
-            if aNum < 5:
-                aNum += 1
-                return getShareCode(ck)
-            else:
-                groupCode = 0
-                shareCode = 0
-                sumBeanNumStr = 0
-                aNum = 0
-                activityId = 0
-        aNum = 0
-        return groupCode, shareCode, sumBeanNumStr, activityId
-    except Exception as e:
-        print(f"getShareCode Error", e)
-
-def helpCode(ck, groupCode, shareCode,u, unum, user, activityId):
-    try:
-        v_num1 = ''.join(random.sample(["1", "2", "3", "4", "5", "6", "7", "8", "9"], 1)) + ''.join(random.sample(string.digits, 4))
-        headers = {
-            'Cookie': ck,
-            'Accept': '*/*',
-            'Connection': 'keep-alive',
-            'Referer': f'https://h5.m.jd.com/rn/42yjy8na6pFsq1cx9MJQ5aTgu3kX/index.html?jklActivityId=115&source=SignSuccess&jklGroupCode={groupCode}&ad_od=1&jklShareCode={shareCode}',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Host': 'api.m.jd.com',
-            'User-Agent': userAgent(),
-            'Accept-Language': 'zh-cn'
-        }
-        url = 'https://api.m.jd.com/client.action?functionId=signGroupHelp&body=%7B%22activeType%22%3A2%2C%22groupCode%22%3A%22' + str(groupCode) + '%22%2C%22shareCode%22%3A%22' + shareCode + f'%22%2C%22activeId%22%3A%22{activityId}%22%2C%22source%22%3A%22guest%22%7D&appid=ld&client=apple&clientVersion=10.0.4&networkType=wifi&osVersion=13.7&uuid=&openudid=&jsonp=jsonp_{int(round(t * 1000))}_{v_num1}'
-        resp = requests.get(url=url, headers=headers, verify=False, timeout=30).text
-        r = re.compile(r'jsonp_.*?\((.*?)\)\;', re.M | re.S | re.I)
-        result = r.findall(resp)
-        jsonp = json.loads(result[0])
-        helpToast = jsonp['data']['helpToast']
-        pageFlag = jsonp['data']['pageFlag']
-        if pageFlag == 0:
-            print(f"账号{unum}【{u}】助力失败! 原因：{helpToast}")
-            if '满' in helpToast:
-                print(f"## 恭喜账号【{user}】团已满，今日累计获得160豆")
-                return True
-            return False
+        url = 'https://api.m.jd.com/client.action?functionId=cash_getJDMobShareInfo&body=%7B%22source%22%3A2%7D&appid=CashReward&client=m&clientVersion=9.2.8'
+        resp = requests.post(url=url, headers=header,  verify=False, timeout=30).json()
+        if resp['data']['bizMsg'] == 'success' and resp['data']['success']:
+            inviteCode = resp['data']['result']['inviteCode']
+            shareDate = resp['data']['result']['shareDate']
+            aNum = 0
+            return inviteCode, shareDate
         else:
-            if '火' in helpToast:
-                print(f"账号{unum}【{u}】助力失败! 原因：{helpToast}")
-            else:
-                print(f"账号{unum}【{u}】{helpToast} , 您也获得1豆哦~")
-            return False
+            print("获取互助码失败！")
+            return 0, 0
     except Exception as e:
-        print(f"helpCode Error ", e)
+        if aNum < 5:
+            aNum += 1
+            return getShareCode(header)
+        else:
+            aNum = 0
+            print("获取互助码失败！", e)
+            return 0, 0
+
+def helpCode(header, inviteCode, shareDate, uNUm, user, name):
+    try:
+        url = f'https://api.m.jd.com/client.action?functionId=cash_mob_assist&body=%7B%22source%22%3A3%2C%22inviteCode%22%3A%22{inviteCode}%22%2C%22shareDate%22%3A%22{shareDate}%22%7D&appid=CashReward&client=m&clientVersion=9.2.8'
+        resp = requests.post(url=url, headers=header,  verify=False, timeout=30).json()
+        if resp['data']['success']:
+            print(f'用户{uNUm}【{user}】助力【{name}】{resp["data"]["bizMsg"]} -> 您也获得{resp["data"]["result"]["cashStr"]}现金')
+        else:
+            print(f'用户{uNUm}【{user}】助力【{name}】{resp["data"]["bizMsg"]}')
+    except Exception as e:
+        print("helpCode Error", e)
+        print(f'用户{uNUm}【{user}】助力【{name}】报错了！')
+
+def cash_exchangePage(ck):
+    try:
+        iosVer = ''.join(random.sample(["14.5.1", "14.4", "14.3", "14.2", "14.1", "14.0.1", "13.7", "13.1.2", "13.1.1"], 1))
+        url = 'https://api.m.jd.com/client.action?functionId=cash_exchangePage'
+        header = {
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Cookie': ck,
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept': '*/*',
+            'Host': 'api.m.jd.com',
+            'User-Agent': f'JD4iPhone/167724 (iPhone; iOS {iosVer}; Scale/3.00)',
+            'Referer': '',
+            'Accept-Language': 'zh-Hans-CN;q=1'
+        }
+        body = f'body=%7B%7D&build=167724&client=apple&clientVersion=10.0.6&d_brand=apple&d_model=iPhone13%2C4&eid=&isBackground=N&joycious=82&lang=zh_CN&networkType=wifi&networklibtype=JDNetworkBaseAF&openudid=809409cbd5bb8a0fa8fff41378c1afe91b8075ad&osVersion={iosVer}&partner=apple&rfs=0000&scope=10&screen=1125%2A2436&sign=5b8aa440653bb1fcbad0f0ff71671cae&st=1625368739358&sv=122&uemps=0-0&uts=&uuid=&wifiBssid=unknown'
+        response = requests.post(url=url, headers=header, data=body, verify=False, timeout=30).json()
+        return response['data']['result']['totalMoney']
+    except Exception as e:
+        print("cash_exchangePage Error", e)
+        return 0
 
 def start():
-    scriptName='### 全民抢京豆-助力 ###'
+    scriptName = '### 签到领现金-助力 ###'
     print(scriptName)
-    global cookiesList, userNameList, pinNameList, ckNum, beanCount, userCount
+    global cookiesList, userNameList, pinNameList, ckNum, cashCount, cashCountdict
     cookiesList, userNameList, pinNameList = getCk.iscookie()
-    for ckname in qjd_zlzh:
+    for ckname in cash_zlzh:
         try:
             ckNum = userNameList.index(ckname)
         except Exception as e:
@@ -328,27 +319,26 @@ def start():
                 continue
 
         print(f"### 开始助力账号【{userNameList[int(ckNum)]}】###")
-        groupCode, shareCode, sumBeanNumStr, activityId = getShareCode(cookiesList[ckNum])
-        if groupCode == 0:
-            message(f"## {userNameList[int(ckNum)]}  获取互助码失败。请手动分享后再试~ 或建议早上再跑。")
+        inviteCode, shareDate = getShareCode(buildHeader(cookiesList[ckNum]))
+        if inviteCode == 0:
+            print(f"## {userNameList[int(ckNum)]}  获取互助码失败。请稍后再试！")
             continue
         u = 0
         for i in cookiesList:
             if i == cookiesList[ckNum]:
                 u += 1
                 continue
-            result = helpCode(i, groupCode, shareCode, userNameList[u], u+1, userNameList[int(ckNum)], activityId)
+            helpCode(buildHeader(i), inviteCode, shareDate, u+1, userNameList[u], userNameList[ckNum])
             time.sleep(sleepNum)
-            if result:
-                break
             u += 1
-        groupCode, shareCode, sumBeanNumStr, activityId = getShareCode(cookiesList[ckNum])
-        userCount[f'{userNameList[ckNum]}'] = sumBeanNumStr
-        beanCount += sumBeanNumStr
+        totalMoney = cash_exchangePage(cookiesList[ckNum])
+        cashCount += totalMoney
+        cashCountdict[userNameList[ckNum]] = totalMoney
+
     print("\n-------------------------")
-    for i in userCount.keys():
-        message(f"账号【{i}】已抢京豆: {userCount[i]}")
-    message(f"## 今日累计获得 {beanCount} 京豆")
+    for i in cashCountdict.keys():
+        message(f"账号【{i}】当前现金: ￥{cashCountdict[i]}")
+    message("## 总累计获得 ￥%.2f" % cashCount)
     try:
         send(scriptName, message_info)
     except:
