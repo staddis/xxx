@@ -97,8 +97,12 @@ $.shareuuid = "4c37a37d31b94b138fefcaf037e719a5" //俺的助力码
                     }
                     await exchange(38) //兑换10豆
                     await getinfo()
-
-                    message += `【京东账号${$.index}】${$.nickName || $.UserName}\n${$.cow} \n ${$.exchange}\n`
+                    message += `【京东账号${$.index}】${$.nickName || $.UserName}\n${$.cow} \n ${$.exchange}\n\n`
+                   if($.index%3===0) 
+                   {
+                  await $.wait(60*1000) 
+                  console.log("休息休息~") 
+                   }
                 } else {
                     console.log("跑不起来了~请自己进去一次球场")
                 }
@@ -232,10 +236,19 @@ function getMyPin() {
                 } else {
                     //       console.log(data)
                     data = JSON.parse(data);
+                                        if ($.isNode())
+                        for (let ck of resp['headers']['set-cookie']) {
+                            cookie = `${cookie}; ${ck.split(";")[0]};`
+                        }
+                    else {
+                        for (let ck of resp['headers']['Set-Cookie'].split(',')) {
+                            cookie = `${cookie}; ${ck.split(";")[0]};`
+                        }
+                    }
                     if (data.data && data.data.secretPin) {
                         $.pin = data.data.secretPin
                         //    console.log($.pin)
-                        cookie = `${cookie} AUTH_C_USER=${$.pin};`
+                     //   cookie = `${cookie} AUTH_C_USER=${$.pin};`
                         $.nickname = data.data.nickname
                         console.log(`欢迎回来~  ${$.nickname}`);
                     }
