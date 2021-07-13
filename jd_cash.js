@@ -19,7 +19,7 @@ cron "2 0-23/4 * * *" script-path=https://gitee.com/lxk0301/jd_scripts/raw/maste
 ============小火箭=========
 签到领现金 = type=cron,script-path=https://gitee.com/lxk0301/jd_scripts/raw/master/jd_cash.js, cronexpr="2 0-23/4 * * *", timeout=3600, enable=true
  */
-const $ = new Env( '签到领现金' );
+const $ = new Env('签到领现金');
 const notify = $.isNode() ? require( './sendNotify' ) : '';
 //Node.js用户请在jdCookie.js处填写京东ck;
 const jdCookieNode = $.isNode() ? require( './jdCookie.js' ) : '';
@@ -30,7 +30,7 @@ let helpAuthor = true;
 const randomCount = $.isNode() ? 20 : 5;
 
 // newShareCodes = [ { "inviteCode":"Ih4-bOuwb_0l8G-6iw"}] //这里修改你的邀请码
-newShareCodes = [{ "inviteCode":"JBk_Zeu0YP878m3SyHMR"}] //这里修改你的邀请码
+newShareCodes = [] //这里修改你的邀请码
 if ( $.isNode() ) {
   Object.keys( jdCookieNode ).forEach( ( item ) => {
     cookiesArr.push( jdCookieNode[ item ] )

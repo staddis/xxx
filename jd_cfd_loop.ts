@@ -81,7 +81,7 @@ let UserName: string, index: number, isLogin: boolean, nickName: string
         }
       }
     } catch (e) {
-      console.log(e)
+      // console.log(e)
       break
     }
     let t: number = process.env.CFD_LOOP_DELAY ? parseInt(process.env.CFD_LOOP_DELAY) : getRandomNumberByRange(10000, 25000)
