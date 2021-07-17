@@ -1,23 +1,9 @@
 /*
-口袋书店
-活动入口：京东app首页-京东图书-右侧口袋书店
-已支持IOS双京东账号,Node.js支持N个京东账号
-脚本兼容: QuantumultX, Surge, Loon, JSBox, Node.js
-============Quantumultx===============
-[task_local]
+
 #口袋书店
-1 8,12,18 * * * jd_bookshop.js, tag=口袋书店, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
+1 8,12,18 * * *  jd_bookshop.js
 
-================Loon==============
-[Script]
-cron "1 8,12,18 * * *" script-path=jd_bookshop.js,tag=口袋书店
-
-===============Surge=================
-口袋书店 = type=cron,cronexp="1 8,12,18 * * *",wake-system=1,timeout=3600,script-path=jd_bookshop.js
-
-============小火箭=========
-口袋书店 = type=cron,script-path=jd_bookshop.js, cronexpr="1 8,12,18 * * *", timeout=3600, enable=true
- */
+*/
 const $ = new Env('口袋书店');
 const notify = $.isNode() ? require('./sendNotify') : '';
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
@@ -30,8 +16,8 @@ ADD_CART = $.isNode() ? (process.env.PURCHASE_SHOPS ? process.env.PURCHASE_SHOPS
 // 加入购物车开关，与东东小窝共享
 
 let inviteCodes = [
-  '28a699ac78d74aa3b31f7103597f8927@2f14ee9c92954cf79829320dd482bf49@fdf827db272543d88dbb51a505c2e869@ce2536153a8742fb9e8754a9a7d361da@38ba4e7ba8074b78851e928af2b4f6b2',
-  '28a699ac78d74aa3b31f7103597f8927@2f14ee9c92954cf79829320dd482bf49@fdf827db272543d88dbb51a505c2e869'
+  '3d6f5fa6931d404198b208ba3ca2f2a1@561b951bb0194a95b167e95b6d6c21cd@3d6f5fa6931d404198b208ba3ca2f2a1@561b951bb0194a95b167e95b6d6c21cd@3d6f5fa6931d404198b208ba3ca2f2a1@561b951bb0194a95b167e95b6d6c21cd',
+  '3d6f5fa6931d404198b208ba3ca2f2a1@561b951bb0194a95b167e95b6d6c21cd@3d6f5fa6931d404198b208ba3ca2f2a1@561b951bb0194a95b167e95b6d6c21cd'
 ]
 
 if ($.isNode()) {
@@ -88,6 +74,7 @@ async function jdBeauty() {
   await getActCk()
   await getActInfo()
   await getToken()
+  await accessLogWithAD()
   await getUserInfo()
   await getActContent(false, shareUuid)
   if ($.exit) return
@@ -264,7 +251,35 @@ function getUserInfo() {
     })
   })
 }
-
+// 获得用户信息
+function accessLogWithAD() {
+  return new Promise(resolve => {
+    let body = `venderId=${ $.shopId}&code=99&pin=${encodeURIComponent($.token)}&activityId=${ACT_ID}&pageUrl=https%3A%2F%2Flzdz-isv.isvjcloud.com%2Fdingzhi%2Fbook%2Fdevelop%2Factivity%3FactivityId%3Ddz2010100034444201%26lng%3D107.146945%26lat%3D33.255267%26sid%3Dcad74d1c843bd47422ae20cadf6fe5aw%26un_area%3D27_2442_2444_31912&subType=app&adSource=`
+    $.post(taskPostUrl('common/accessLogWithAD', body), async (err, resp, data) => {
+      try {
+        if (err) {
+          console.log(`${$.name} API请求失败，请检查网路重试`)
+        } else {
+    //      if (safeGet(data)) {
+          if($.isNode())
+            for (let ck of resp['headers']['set-cookie']) {
+              cookie = `${cookie}; ${ck.split(";")[0]};`
+            }
+          else{
+            for (let ck of resp['headers']['Set-Cookie'].split(',')) {
+              cookie = `${cookie}; ${ck.split(";")[0]};`
+            }
+          }
+       //   }
+        }
+      } catch (e) {
+        $.logErr(e, resp)
+      } finally {
+        resolve(data);
+      }
+    })
+  })
+}
 // 获得游戏信息
 function getActContent(info = false, shareUuid = '') {
   return new Promise(resolve => {
@@ -274,6 +289,7 @@ function getActContent(info = false, shareUuid = '') {
         if (err) {
           console.log(`${$.name} API请求失败，请检查网路重试`)
         } else {
+   //     console.log(data)
           if (data && safeGet(data)) {
             data = JSON.parse(data);
             if (data.data) {
@@ -610,94 +626,51 @@ function taskPostUrl(function_id, body) {
     }
   }
 }
-function TotalBean () {
-  return new Promise( async resolve => {
+
+function TotalBean() {
+  return new Promise(async resolve => {
     const options = {
-      url: "https://me-api.jd.com/user_new/info/GetJDUserInfoUnion",
-      headers: {
-        Host: "me-api.jd.com",
-        Accept: "*/*",
-        Connection: "keep-alive",
-        Cookie: cookie,
-        "User-Agent": $.isNode() ? ( process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : ( require( './USER_AGENTS' ).USER_AGENT ) ) : ( $.getdata( 'JDUA' ) ? $.getdata( 'JDUA' ) : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1" ),
+      "url": `https://wq.jd.com/user/info/QueryJDUserInfo?sceneval=2`,
+      "headers": {
+        "Accept": "application/json,text/plain, */*",
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Accept-Encoding": "gzip, deflate, br",
         "Accept-Language": "zh-cn",
-        "Referer": "https://home.m.jd.com/myJd/newhome.action?sceneval=2&ufc=&",
-        "Accept-Encoding": "gzip, deflate, br"
+        "Connection": "keep-alive",
+        "Cookie": cookie,
+        "Referer": "https://wqs.jd.com/my/jingdou/my.shtml?sceneval=2",
+        "User-Agent": $.isNode() ? (process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : (require('./USER_AGENTS').USER_AGENT)) : ($.getdata('JDUA') ? $.getdata('JDUA') : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1")
       }
     }
-    $.get( options, ( err, resp, data ) => {
+    $.post(options, (err, resp, data) => {
       try {
-        if ( err ) {
-          $.logErr( err )
+        if (err) {
+          console.log(`${JSON.stringify(err)}`)
+          console.log(`${$.name} API请求失败，请检查网路重试`)
         } else {
-          if ( data ) {
-            data = JSON.parse( data );
-            if ( data[ 'retcode' ] === "1001" ) {
+          if (data) {
+            data = JSON.parse(data);
+            if (data['retcode'] === 13) {
               $.isLogin = false; //cookie过期
-              return;
+              return
             }
-            if ( data[ 'retcode' ] === "0" && data.data && data.data.hasOwnProperty( "userInfo" ) ) {
-              $.nickName = data.data.userInfo.baseInfo.nickname;
-            }
-            if ( data[ 'retcode' ] === '0' && data.data && data.data[ 'assetInfo' ] ) {
-              $.beanCount = data.data && data.data[ 'assetInfo' ][ 'beanNum' ];
+            if (data['retcode'] === 0) {
+              $.nickName = (data['base'] && data['base'].nickname) || $.UserName;
+            } else {
+              $.nickName = $.UserName
             }
           } else {
-            $.log( '京东服务器返回空数据' );
+            console.log(`京东服务器返回空数据`)
           }
         }
-      } catch ( e ) {
-        $.logErr( e )
+      } catch (e) {
+        $.logErr(e, resp)
       } finally {
         resolve();
       }
-    } )
-  } )
+    })
+  })
 }
-// function TotalBean() {
-//   return new Promise(async resolve => {
-//     const options = {
-//       "url": `https://wq.jd.com/user/info/QueryJDUserInfo?sceneval=2`,
-//       "headers": {
-//         "Accept": "application/json,text/plain, */*",
-//         "Content-Type": "application/x-www-form-urlencoded",
-//         "Accept-Encoding": "gzip, deflate, br",
-//         "Accept-Language": "zh-cn",
-//         "Connection": "keep-alive",
-//         "Cookie": cookie,
-//         "Referer": "https://wqs.jd.com/my/jingdou/my.shtml?sceneval=2",
-//         "User-Agent": $.isNode() ? (process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : (require('./USER_AGENTS').USER_AGENT)) : ($.getdata('JDUA') ? $.getdata('JDUA') : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1")
-//       }
-//     }
-//     $.post(options, (err, resp, data) => {
-//       try {
-//         if (err) {
-//           console.log(`${JSON.stringify(err)}`)
-//           console.log(`${$.name} API请求失败，请检查网路重试`)
-//         } else {
-//           if (data) {
-//             data = JSON.parse(data);
-//             if (data['retcode'] === 13) {
-//               $.isLogin = false; //cookie过期
-//               return
-//             }
-//             if (data['retcode'] === 0) {
-//               $.nickName = (data['base'] && data['base'].nickname) || $.UserName;
-//             } else {
-//               $.nickName = $.UserName
-//             }
-//           } else {
-//             console.log(`京东服务器返回空数据`)
-//           }
-//         }
-//       } catch (e) {
-//         $.logErr(e, resp)
-//       } finally {
-//         resolve();
-//       }
-//     })
-//   })
-// }
 
 //格式化助力码
 function shareCodesFormat() {

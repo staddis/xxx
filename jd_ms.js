@@ -1,25 +1,9 @@
 /*
-京东秒秒币
-Last Modified time: 2021-05-22 8:55:00
-一天签到100币左右，100币可兑换1毛钱红包，推荐攒着配合农场一起用
-活动时间：长期活动
-更新地址：jd_ms.js
-活动入口：京东app-京东秒杀-签到领红包
-脚本兼容: QuantumultX, Surge, Loon, JSBox, Node.js
-============Quantumultx===============
+
 [task_local]
 #京东秒秒币
-10 7 * * * jd_ms.js, tag=京东秒秒币, img-url=https://raw.githubusercontent.com/yogayyy/Scripts/master/Icon/shylocks/jd_ms.jpg, enabled=true
+10 7 * * * jd_ms.js
 
-================Loon==============
-[Script]
-cron "10 7 * * *" script-path=jd_ms.js,tag=京东秒秒币
-
-===============Surge=================
-京东秒秒币 = type=cron,cronexp="10 7 * * *",wake-system=1,timeout=200,script-path=jd_ms.js
-
-============小火箭=========
-京东秒秒币 = type=cron,script-path=jd_ms.js, cronexpr="10 7 * * *", timeout=200, enable=true
  */
 const $ = new Env('京东秒秒币');
 
@@ -255,94 +239,51 @@ function taskPostUrl(function_id, body = {}, extra = '', function_id2) {
     }
   }
 }
-function TotalBean () {
-  return new Promise( async resolve => {
+
+function TotalBean() {
+  return new Promise(async resolve => {
     const options = {
-      url: "https://me-api.jd.com/user_new/info/GetJDUserInfoUnion",
-      headers: {
-        Host: "me-api.jd.com",
-        Accept: "*/*",
-        Connection: "keep-alive",
-        Cookie: cookie,
-        "User-Agent": $.isNode() ? ( process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : ( require( './USER_AGENTS' ).USER_AGENT ) ) : ( $.getdata( 'JDUA' ) ? $.getdata( 'JDUA' ) : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1" ),
+      "url": `https://wq.jd.com/user/info/QueryJDUserInfo?sceneval=2`,
+      "headers": {
+        "Accept": "application/json,text/plain, */*",
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Accept-Encoding": "gzip, deflate, br",
         "Accept-Language": "zh-cn",
-        "Referer": "https://home.m.jd.com/myJd/newhome.action?sceneval=2&ufc=&",
-        "Accept-Encoding": "gzip, deflate, br"
+        "Connection": "keep-alive",
+        "Cookie": cookie,
+        "Referer": "https://wqs.jd.com/my/jingdou/my.shtml?sceneval=2",
+        "User-Agent": $.isNode() ? (process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : (require('./USER_AGENTS').USER_AGENT)) : ($.getdata('JDUA') ? $.getdata('JDUA') : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1")
       }
     }
-    $.get( options, ( err, resp, data ) => {
+    $.post(options, (err, resp, data) => {
       try {
-        if ( err ) {
-          $.logErr( err )
+        if (err) {
+          console.log(`${JSON.stringify(err)}`)
+          console.log(`${$.name} API请求失败，请检查网路重试`)
         } else {
-          if ( data ) {
-            data = JSON.parse( data );
-            if ( data[ 'retcode' ] === "1001" ) {
+          if (data) {
+            data = JSON.parse(data);
+            if (data['retcode'] === 13) {
               $.isLogin = false; //cookie过期
-              return;
+              return
             }
-            if ( data[ 'retcode' ] === "0" && data.data && data.data.hasOwnProperty( "userInfo" ) ) {
-              $.nickName = data.data.userInfo.baseInfo.nickname;
-            }
-            if ( data[ 'retcode' ] === '0' && data.data && data.data[ 'assetInfo' ] ) {
-              $.beanCount = data.data && data.data[ 'assetInfo' ][ 'beanNum' ];
+            if (data['retcode'] === 0) {
+              $.nickName = (data['base'] && data['base'].nickname) || $.UserName;
+            } else {
+              $.nickName = $.UserName
             }
           } else {
-            $.log( '京东服务器返回空数据' );
+            console.log(`京东服务器返回空数据`)
           }
         }
-      } catch ( e ) {
-        $.logErr( e )
+      } catch (e) {
+        $.logErr(e, resp)
       } finally {
         resolve();
       }
-    } )
-  } )
+    })
+  })
 }
-// function TotalBean() {
-//   return new Promise(async resolve => {
-//     const options = {
-//       "url": `https://wq.jd.com/user/info/QueryJDUserInfo?sceneval=2`,
-//       "headers": {
-//         "Accept": "application/json,text/plain, */*",
-//         "Content-Type": "application/x-www-form-urlencoded",
-//         "Accept-Encoding": "gzip, deflate, br",
-//         "Accept-Language": "zh-cn",
-//         "Connection": "keep-alive",
-//         "Cookie": cookie,
-//         "Referer": "https://wqs.jd.com/my/jingdou/my.shtml?sceneval=2",
-//         "User-Agent": $.isNode() ? (process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : (require('./USER_AGENTS').USER_AGENT)) : ($.getdata('JDUA') ? $.getdata('JDUA') : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1")
-//       }
-//     }
-//     $.post(options, (err, resp, data) => {
-//       try {
-//         if (err) {
-//           console.log(`${JSON.stringify(err)}`)
-//           console.log(`${$.name} API请求失败，请检查网路重试`)
-//         } else {
-//           if (data) {
-//             data = JSON.parse(data);
-//             if (data['retcode'] === 13) {
-//               $.isLogin = false; //cookie过期
-//               return
-//             }
-//             if (data['retcode'] === 0) {
-//               $.nickName = (data['base'] && data['base'].nickname) || $.UserName;
-//             } else {
-//               $.nickName = $.UserName
-//             }
-//           } else {
-//             console.log(`京东服务器返回空数据`)
-//           }
-//         }
-//       } catch (e) {
-//         $.logErr(e, resp)
-//       } finally {
-//         resolve();
-//       }
-//     })
-//   })
-// }
 
 function safeGet(data) {
   try {

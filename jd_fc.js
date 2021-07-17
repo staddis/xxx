@@ -1,31 +1,25 @@
 /*
-#柠檬是兄弟就砍我
-#自定义邀请码环境变量
-export actId="" ##你要参加砍价的商品ID
-export packetId="" ##你要参加砍价的邀请码
-[task_local]
-#柠檬是兄弟就砍我
- 0 0 * * * http://nm66.top/jd_kanjia.js, tag=柠檬是兄弟就砍我, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
+
+ 0,2 0 * * * jd_fc.js, tag=柠檬发财大赢家, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
 */
 
 
-const $ = new Env('柠檬是兄弟就砍我');
+const $ = new Env('柠檬发财大赢家获取邀请码');
 const notify = $.isNode() ? require('./sendNotify') : '';
 //Node.js用户请在jdCookie.js处填写京东ck;
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 
 //IOS等用户直接用NobyDa的jd cookie
 let cookiesArr = [], cookie = '', message;
-let actId = ''; //你要参加砍价的商品ID
-let packetId = '';//你要参加砍价的邀请码
-//c50d6379ad3b4782bfc05940e358ace3
-//ac4a4b0b300e4fc6a2fdb88412f51e94-amRfTFBtdnNBVGdyQ0t1
-if (process.env.actId) {
-  actId = process.env.actId;
+let redEnvelopeId = '';
+let inviter = '';
+
+if (process.env.redEnvelopeId) {
+  redEnvelopeId = process.env.redEnvelopeId;
 }
 
-if (process.env.packetId) {
-  packetId = process.env.packetId;
+if (process.env.inviter) {
+  inviter = process.env.inviter;
 }
 if ($.isNode()) {
   Object.keys(jdCookieNode).forEach((item) => {
@@ -61,13 +55,11 @@ const JD_API_HOST = 'https://api.m.jd.com/client.action';
         }
         continue
       }
-
-      await list()
+      //await zhuli()
+     // await list()
+      await info()
      
-     await $.wait(10000)
-     
-     await kanjia()
-     
+      
 
     }
   }
@@ -78,67 +70,22 @@ const JD_API_HOST = 'https://api.m.jd.com/client.action';
   .finally(() => {
     $.done();
   })
-
-function list() {
+function info() {
     return new Promise(async (resolve) => {
 
                 let options = {
-    url: `https://api.m.jd.com`,
+    url: `https://api.m.jd.com/?functionId=redEnvelopeInteractHome&body={"linkId":"yMVR-_QKRd2Mq27xguJG-w"}&t=1626358531348&appid=activities_platform&clientVersion=3.5.6`,
 
-    body: `functionId=HomeZeroBuy&body={"pageNum":1,"channel":"speed_app"}&appid=megatron&client=megatron&clientVersion=1.0.0`,
+   
 headers: {
-"Origin": "https://mfn.jd.com",
+"Origin": "https://618redpacket.jd.com",
 "Host": "api.m.jd.com",
-      "User-Agent": "jdltapp;iPhone;3.3.6;14.3;75aeceef3046d8ce11d354ff89af9517a2e4aa18;network/wifi;hasUPPay/0;pushNoticeIsOpen/0;lang/zh_CN;model/iPhone9,2;addressid/;hasOCPay/0;appBuild/1060;supportBestPay/0;pv/56.42;apprpd/;ref/JDLTSubMainPageViewController;psq/38;ads/;psn/75aeceef3046d8ce11d354ff89af9517a2e4aa18|99;jdv/0|kong|t_1001003207_1762319_6901310|jingfen|30578707801140d09fcd54e5cd83bbf7|1621510932517|1621511027;adk/;app_device/IOS;pap/JA2020_3112531|3.3.6|IOS 14.3;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1",
+      "User-Agent": "User-Agent: Mozilla/5.0 (Linux; U; Android 8.0.0; zh-cn; Mi Note 2 Build/OPR1.170623.032) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/61.0.3163.128 Mobile Safari/537.36 XiaoMi/MiuiBrowser/10.1.1",
       "Cookie": cookie,
       }
                 }
       
-        $.post(options, async (err, resp, data) => {
-            try {
-
-                    data = JSON.parse(data);
-                 
-                   
-                   
-                    if(data.code == 0){
-console.log("商品："+data.data[0].goodsName+"\n商品ID："+data.data[0].actId)
-await listyqm(data.data[0].actId)
-console.log("\n商品："+data.data[1].goodsName+"\n商品ID："+data.data[1].actId)
-await listyqm(data.data[1].actId)
-console.log("\n商品："+data.data[2].goodsName+"\n商品ID："+data.data[2].actId)
-await listyqm(data.data[2].actId)
-console.log("\n商品："+data.data[3].goodsName+"\n商品ID："+data.data[3].actId)
-await listyqm(data.data[3].actId)
-console.log("\n商品："+data.data[4].goodsName+"\n商品ID："+data.data[4].actId) 
-await listyqm(data.data[4].actId)
-
-                }
-            } catch (e) {
-                $.logErr(e, resp);
-            } finally {
-                resolve();
-            }
-        });
-    });
-}
-
-function listyqm(actIda) {
-    return new Promise(async (resolve) => {
-
-                let options = {
-    url: `https://api.m.jd.com`,
-
-    body: `functionId=initiateBargain&body={"actId":"${actIda}","headPortrait":"","nick":"","channel":"speed_app"}&appid=megatron&client=megatron&clientVersion=1.0.0`,
-headers: {
-"Origin": "https://mfn.jd.com",
-"Host": "api.m.jd.com",
-      "User-Agent": "jdltapp;iPhone;3.3.6;14.3;75aeceef3046d8ce11d354ff89af9517a2e4aa18;network/wifi;hasUPPay/0;pushNoticeIsOpen/0;lang/zh_CN;model/iPhone9,2;addressid/;hasOCPay/0;appBuild/1060;supportBestPay/0;pv/56.42;apprpd/;ref/JDLTSubMainPageViewController;psq/38;ads/;psn/75aeceef3046d8ce11d354ff89af9517a2e4aa18|99;jdv/0|kong|t_1001003207_1762319_6901310|jingfen|30578707801140d09fcd54e5cd83bbf7|1621510932517|1621511027;adk/;app_device/IOS;pap/JA2020_3112531|3.3.6|IOS 14.3;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1",
-      "Cookie": cookie,
-      }
-                }
-      
-        $.post(options, async (err, resp, data) => {
+        $.get(options, async (err, resp, data) => {
             try {
 
                     data = JSON.parse(data);
@@ -147,46 +94,9 @@ headers: {
                    
                     if(data.code == 0){
                       
-                       console.log('\n当前商品邀请码：'+data.data.packetId+"\n当前初始化砍价："+data.data.amount)
+                       console.log(`export redEnvelopeId="${data.data.redEnvelopeId}"\nexport inviter="${data.data.markedPin}"`)
 
                 }
-            } catch (e) {
-                $.logErr(e, resp);
-            } finally {
-                resolve();
-            }
-        });
-    });
-}
-
-function kanjia() {
-    return new Promise(async (resolve) => {
-
-                let options = {
-    url: `https://api.m.jd.com`,
-
-    body: `functionId=helpBargain&body={"actId":"${actId}","packetId":"${packetId}","headPortrait":"","nick":"","attent":true,"channel":"speed_app"}&appid=megatron&client=megatron&clientVersion=1.0.0`,
-headers: {
-"Origin": "https://mfn.jd.com",
-"Host": "api.m.jd.com",
-      "User-Agent": "jdltapp;iPhone;3.3.6;14.3;75aeceef3046d8ce11d354ff89af9517a2e4aa18;network/wifi;hasUPPay/0;pushNoticeIsOpen/0;lang/zh_CN;model/iPhone9,2;addressid/;hasOCPay/0;appBuild/1060;supportBestPay/0;pv/56.42;apprpd/;ref/JDLTSubMainPageViewController;psq/38;ads/;psn/75aeceef3046d8ce11d354ff89af9517a2e4aa18|99;jdv/0|kong|t_1001003207_1762319_6901310|jingfen|30578707801140d09fcd54e5cd83bbf7|1621510932517|1621511027;adk/;app_device/IOS;pap/JA2020_3112531|3.3.6|IOS 14.3;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1",
-      "Cookie": cookie,
-      }
-                }
-      
-        $.post(options, async (err, resp, data) => {
-            try {
-
-                    data = JSON.parse(data);
-
-                   
-                   
-                    if(data.code == 0){
-                      
-                       console.log('\n已帮砍：'+data.msg)
-
-                }else
-                console.log('\n已帮砍：'+data.msg)
             } catch (e) {
                 $.logErr(e, resp);
             } finally {
@@ -231,94 +141,51 @@ async function taskPostUrl(functionId,body) {
   }
 }
 
-async function TotalBean () {
-  return new Promise( async resolve => {
+
+async function TotalBean() {
+  return new Promise(async resolve => {
     const options = {
-      url: "https://me-api.jd.com/user_new/info/GetJDUserInfoUnion",
-      headers: {
-        Host: "me-api.jd.com",
-        Accept: "*/*",
-        Connection: "keep-alive",
-        Cookie: cookie,
-        "User-Agent": $.isNode() ? ( process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : ( require( './USER_AGENTS' ).USER_AGENT ) ) : ( $.getdata( 'JDUA' ) ? $.getdata( 'JDUA' ) : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1" ),
+      "url": `https://wq.jd.com/user/info/QueryJDUserInfo?sceneval=2`,
+      "headers": {
+        "Accept": "application/json,text/plain, */*",
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Accept-Encoding": "gzip, deflate, br",
         "Accept-Language": "zh-cn",
-        "Referer": "https://home.m.jd.com/myJd/newhome.action?sceneval=2&ufc=&",
-        "Accept-Encoding": "gzip, deflate, br"
+        "Connection": "keep-alive",
+        "Cookie": cookie,
+        "Referer": "https://wqs.jd.com/my/jingdou/my.shtml?sceneval=2",
+        "User-Agent": $.isNode() ? (process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : (require('./USER_AGENTS').USER_AGENT)) : ($.getdata('JDUA') ? $.getdata('JDUA') : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1")
       }
     }
-    $.get( options, ( err, resp, data ) => {
+    $.post(options, (err, resp, data) => {
       try {
-        if ( err ) {
-          $.logErr( err )
+        if (err) {
+          console.log(`${JSON.stringify(err)}`)
+          console.log(`${$.name} API请求失败，请检查网路重试`)
         } else {
-          if ( data ) {
-            data = JSON.parse( data );
-            if ( data[ 'retcode' ] === "1001" ) {
+          if (data) {
+            data = JSON.parse(data);
+            if (data["retcode"] === 13) {
               $.isLogin = false; //cookie过期
               return;
             }
-            if ( data[ 'retcode' ] === "0" && data.data && data.data.hasOwnProperty( "userInfo" ) ) {
-              $.nickName = data.data.userInfo.baseInfo.nickname;
-            }
-            if ( data[ 'retcode' ] === '0' && data.data && data.data[ 'assetInfo' ] ) {
-              $.beanCount = data.data && data.data[ 'assetInfo' ][ 'beanNum' ];
+            if (data["retcode"] === 0) {
+              $.nickName = (data["base"] && data["base"].nickname) || $.UserName;
+            } else {
+              $.nickName = $.UserName;
             }
           } else {
-            $.log( '京东服务器返回空数据' );
+            console.log(`京东服务器返回空数据`)
           }
         }
-      } catch ( e ) {
-        $.logErr( e )
+      } catch (e) {
+        $.logErr(e, resp)
       } finally {
         resolve();
       }
-    } )
-  } )
+    })
+  })
 }
-// async function TotalBean() {
-//   return new Promise(async resolve => {
-//     const options = {
-//       "url": `https://wq.jd.com/user/info/QueryJDUserInfo?sceneval=2`,
-//       "headers": {
-//         "Accept": "application/json,text/plain, */*",
-//         "Content-Type": "application/x-www-form-urlencoded",
-//         "Accept-Encoding": "gzip, deflate, br",
-//         "Accept-Language": "zh-cn",
-//         "Connection": "keep-alive",
-//         "Cookie": cookie,
-//         "Referer": "https://wqs.jd.com/my/jingdou/my.shtml?sceneval=2",
-//         "User-Agent": $.isNode() ? (process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : (require('./USER_AGENTS').USER_AGENT)) : ($.getdata('JDUA') ? $.getdata('JDUA') : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1")
-//       }
-//     }
-//     $.post(options, (err, resp, data) => {
-//       try {
-//         if (err) {
-//           console.log(`${JSON.stringify(err)}`)
-//           console.log(`${$.name} API请求失败，请检查网路重试`)
-//         } else {
-//           if (data) {
-//             data = JSON.parse(data);
-//             if (data["retcode"] === 13) {
-//               $.isLogin = false; //cookie过期
-//               return;
-//             }
-//             if (data["retcode"] === 0) {
-//               $.nickName = (data["base"] && data["base"].nickname) || $.UserName;
-//             } else {
-//               $.nickName = $.UserName;
-//             }
-//           } else {
-//             console.log(`京东服务器返回空数据`)
-//           }
-//         }
-//       } catch (e) {
-//         $.logErr(e, resp)
-//       } finally {
-//         resolve();
-//       }
-//     })
-//   })
-// }
 async function safeGet(data) {
   try {
     if (typeof JSON.parse(data) == "object") {
