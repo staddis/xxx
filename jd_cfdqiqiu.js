@@ -1,32 +1,27 @@
-/*
-#柠檬发财大赢家
-#自定义邀请码环境变量
-export redEnvelopeId="" ##本期活动ID
-export inviter="" ##邀请码
-[task_local]
-#柠檬发财大赢家
- 0,2 0 * * * http://nm66.top/jd_sqdyj.js, tag=柠檬发财大赢家, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
-*/
 
 
-const $ = new Env('柠檬发财大赢家获取邀请码');
+//  */1 * * * * 
+
+const $ = new Env('柠檬财富岛收气球');
 const notify = $.isNode() ? require('./sendNotify') : '';
 //Node.js用户请在jdCookie.js处填写京东ck;
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 
 //IOS等用户直接用NobyDa的jd cookie
 let cookiesArr = [], cookie = '', message;
-let redEnvelopeId = '';
-let inviter = '';
+let InviterPin = ''; //
 
-if (process.env.redEnvelopeId) {
-  redEnvelopeId = process.env.redEnvelopeId;
+
+if (process.env.InviterPin) {
+  InviterPin = process.env.InviterPin;
 }
 
-if (process.env.inviter) {
-  inviter = process.env.inviter;
-}
-if ($.isNode()) {
+
+
+
+
+
+ if ($.isNode()) {
   Object.keys(jdCookieNode).forEach((item) => {
     cookiesArr.push(jdCookieNode[item])
   })
@@ -60,11 +55,13 @@ const JD_API_HOST = 'https://api.m.jd.com/client.action';
         }
         continue
       }
-      //await zhuli()
-     // await list()
-      await info()
      
-      
+
+       await info()
+          
+       
+
+
 
     }
   }
@@ -75,17 +72,21 @@ const JD_API_HOST = 'https://api.m.jd.com/client.action';
   .finally(() => {
     $.done();
   })
+
+
 function info() {
     return new Promise(async (resolve) => {
 
                 let options = {
-    url: `https://api.m.jd.com/?functionId=redEnvelopeInteractHome&body={"linkId":"yMVR-_QKRd2Mq27xguJG-w"}&t=1626358531348&appid=activities_platform&clientVersion=3.5.6`,
+    url: `https://m.jingxi.com/jxbfd/user/SpeedUp?strZone=jxbfd&bizCode=jxbfd&source=jxbfd&dwEnv=7&_cfd_t=1626188043594&ptag=7155.9.47&strBuildIndex=food&_stk=_cfd_t%2CbizCode%2CdwEnv%2Cptag%2Csource%2CstrBuildIndex%2CstrZone&_ste=1&h5st=20210713225403597%3B9239928912872162%3B10032%3Btk01wb8841b44a8nS1FRZjVXbFpptc7Mic0kKczpSaoGptuQy%2FeboM6QIDBT0Km67Im8F56VoE19A2VFbcj%2FCNagQ%2B4N%3B67684fe731f0edbe5e709e823973a0a1ed33a645717a8c34bcceb69cf3a5c69c&_=1626188043599&sceneval=2&g_login_type=1&callback=jsonpCBKM&g_ty=ls`,
 
-   
+
 headers: {
-"Origin": "https://618redpacket.jd.com",
-"Host": "api.m.jd.com",
-      "User-Agent": "User-Agent: Mozilla/5.0 (Linux; U; Android 8.0.0; zh-cn; Mi Note 2 Build/OPR1.170623.032) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/61.0.3163.128 Mobile Safari/537.36 XiaoMi/MiuiBrowser/10.1.1",
+"Origin": "https://m.jingxi.com",
+
+"Referer": "https://st.jingxi.com/fortune_island/index2.html?ptag=7155.9.47",
+"Accept-Encoding": "gzip, deflate, br",
+"User-Agent": "jdpingou;iPhone;4.10.0;14.3;9714ccbf07209f246277896ef7c041f3bb571ca3;network/wifi;model/iPhone9,2;appBuild/100586;ADID/00000000-0000-0000-0000-000000000000;supportApplePay/1;hasUPPay/0;pushNoticeIsOpen/0;hasOCPay/0;supportBestPay/0;session/50;pap/JA2019_3111789;brand/apple;supportJDSHWK/1;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148",
       "Cookie": cookie,
       }
                 }
@@ -93,15 +94,18 @@ headers: {
         $.get(options, async (err, resp, data) => {
             try {
 
-                    data = JSON.parse(data);
+                    data = data.match(/(\{[^()]+\}.+)/)[1]
 
-                   
-                   
-                    if(data.code == 0){
-                      
-                       console.log(`export redEnvelopeId="${data.data.redEnvelopeId}"\nexport inviter="${data.data.markedPin}"`)
-
+                    //console.log(data)
+                    const reust = JSON.parse(data)
+                    //console.log(reust)
+                    if(reust.iRet == 0){
+                    $.log(`收取气球次数:${reust.dwTodaySpeedPeople}\n金币速度:${reust.ddwSpeedCoin}`)
+                }else if(reust.iRet !== 0){
+                    console.log(data)
                 }
+                
+                    
             } catch (e) {
                 $.logErr(e, resp);
             } finally {
@@ -110,9 +114,6 @@ headers: {
         });
     });
 }
-
-
-
 
 
 
