@@ -37,7 +37,7 @@ const $ = new Env('京喜工厂');
 const JD_API_HOST = 'https://m.jingxi.com';
 const notify = $.isNode() ? require('./sendNotify') : '';
 //通知级别 1=生产完毕可兑换通知;2=可兑换通知+生产超时通知+兑换超时通知;3=可兑换通知+生产超时通知+兑换超时通知+未选择商品生产通知(前提：已开通京喜工厂活动);默认第2种通知
-let notifyLevel = $.isNode() ? process.env.JXGC_NOTIFY_LEVEL || 1 : 1;
+let notifyLevel = $.isNode() ? process.env.JXGC_NOTIFY_LEVEL || 2 : 2;
 const randomCount = $.isNode() ? 20 : 5;
 let tuanActiveId = ``, hasSend = false;
 const jxOpenUrl = `openjd://virtual?params=%7B%20%22category%22:%20%22jump%22,%20%22des%22:%20%22m%22,%20%22url%22:%20%22https://wqsd.jd.com/pingou/dream_factory/index.html%22%20%7D`;
@@ -1016,7 +1016,11 @@ async function tuanActivity() {
 }
 async function joinLeaderTuan() {
   let res = await updateTuanIdsCDN('https://raw.githubusercontent.com/Aaron-lv/updateTeam/master/shareCodes/jd_updateFactoryTuanId.json')
-  if (!res) res = await updateTuanIdsCDN('https://cdn.jsdelivr.net/gh/Aaron-lv/updateTeam@master/shareCodes/jd_updateFactoryTuanId.json')
+  if (!res) {
+    $.http.get({url: 'https://purge.jsdelivr.net/gh/Aaron-lv/updateTeam@master/shareCodes/jd_updateFactoryTuanId.json'}).then((resp) => {}).catch((e) => $.log('刷新CDN异常', e));
+    await $.wait(1000)
+    res = await updateTuanIdsCDN('https://cdn.jsdelivr.net/gh/Aaron-lv/updateTeam@master/shareCodes/jd_updateFactoryTuanId.json');
+  }
   $.authorTuanIds = [...(res && res.tuanIds || [])]
   if ($.authorTuanIds && $.authorTuanIds.length) {
     for (let tuanId of $.authorTuanIds) {
